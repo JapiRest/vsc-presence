@@ -2,7 +2,7 @@
 	"name": "japi-presence",
 	"displayName": "JAPI Presence",
 	"description": "An easy way to display what your working on, from anywhere you can access JAPI.",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"publisher": "japirest",
 	"repository": "https://github.com/JapiRest/vsc-presence",
   "icon": "icons/JapiRest.png",
@@ -13,7 +13,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:japi-presence.helloWorld"
+		"*"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
