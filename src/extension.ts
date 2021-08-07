@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
 import { updateActivity, startSetup, noApiKey, sbUpdate } from './util';
 import throttle from 'lodash-es/throttle';
 
@@ -9,14 +11,17 @@ sbUpdate('init', statusBarIcon);
 
 let listeners: {dispose():any}[] = [];
 
-function sendActivity() { updateActivity(config, statusBarIcon); };
-
 function cleanUp() {
   listeners.forEach((listener) => listener.dispose());
   listeners = [];
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  const extensionPath = path.join(context.extensionPath, "package.json");
+  const packageFile = JSON.parse(fs.readFileSync(extensionPath, 'utf8'));
+  
+  function sendActivity() { updateActivity(config, statusBarIcon, packageFile.version); };
+
 	statusBarIcon.show();
   if(!config.get('api.token')) {noApiKey(statusBarIcon);}
   else {setTimeout(() => sbUpdate('success', statusBarIcon), 1500);}

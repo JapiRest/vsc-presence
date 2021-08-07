@@ -6,16 +6,23 @@ import { API, GitExtension } from './git';
 
 let git: API | null | undefined;
 
-export function sbUpdate(type = 'success', statusBar: vscode.StatusBarItem) {
+export function sbUpdate(type = 'success', statusBar: vscode.StatusBarItem, message?: string) {
   switch (type.toLowerCase()) {
     case 'init': {
       statusBar.text = '$(pulse) JAPI Initializing';
     } break;
 
     case 'success': {
-      statusBar.text = '$(code) JAPI';
-      statusBar.tooltip = 'Connected to JAPI. Click to hide bar icon.';
+      statusBar.text = '$(symbol-module) JAPI Connected';
+      statusBar.tooltip = 'Connected to JAPI. Click to push latest status.';
+      statusBar.command = 'japi.presence.send';
+    } break;
+    
+    case 'error': {
+      statusBar.text = '$(error) Error occurred';
+      statusBar.tooltip = "This tooltip should've updated...";
       statusBar.command = 'japi.statusbar.hide';
+      statusBar.tooltip = message;
     } break;
 
     case 'missingkey': {
@@ -41,43 +48,65 @@ export function sbUpdate(type = 'success', statusBar: vscode.StatusBarItem) {
   }
 }
 
-export async function updateActivity (config: vscode.WorkspaceConfiguration, statusBar: vscode.StatusBarItem) {
+export async function updateActivity (config: vscode.WorkspaceConfiguration, statusBar: vscode.StatusBarItem, presenceVersion: string) {
   const window = vscode.window;
   if(window.activeTextEditor) {
     const document = window.activeTextEditor.document;
     const selection = window.activeTextEditor.selection;
 
-    let fileSize;
+    let fileSize: number;
     try {
-      fileSize = await vscode.workspace.fs.stat(document.uri);
+      ({size: fileSize} = await vscode.workspace.fs.stat(document.uri));
     } catch (err) {
       fileSize = document.getText().length;
     }
+
+    // File Size
+    let currentDivision = 0;
+    const originalSize = fileSize;
+    if(originalSize > 1000) {
+      fileSize /= 1000;
+      currentDivision++;
+      while(fileSize > 1000) {
+        currentDivision++;
+        fileSize /= 1000;
+      }
+    }
+
     try {
+      // Github
       const git = await getGit();
-      let gitLink, gitBranch;
-      if(git && git.repositories && git.repositories.length) {
+      let gitRepoName, gitBranch;
+      if(git?.repositories.length) {
         const selectedRepo = git.repositories.find((repo) => repo.ui.selected);
-        gitLink = git.repositories.find((repo) => repo.ui.selected)?.state.HEAD?.name ?? null;
-        gitBranch = git.repositories.find((repo) => repo.ui.selected)?.state.remotes[0].fetchUrl?.split('/')[1].replace('.git', '') ?? null;
+        gitBranch = selectedRepo?.state.HEAD?.name ?? null;
+        gitRepoName = selectedRepo?.state.remotes[0].fetchUrl?.split('/')[1].replace('.git', '') ?? null;
       } else {
-        gitLink = 'Unknown';
+        gitRepoName = 'Unknown';
         gitBranch = 'Unknown';
       }
 
+      const { dir } = path.parse(window.activeTextEditor.document.fileName);
+      const split = dir.split(path.sep);
+      const dirName = split[split.length - 1];
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+			
       const data = {
+        presenceVersion: presenceVersion,
         sessionType: vscode.debug.activeDebugSession ? 'vscode-debug' : vscode.env.appName.includes('Insiders') ? 'vscode-insiders' : 'vscode',
-        workspaceFolder: vscode.workspace.getWorkspaceFolder(document.uri)?.name,
+        workspaceFolder: workspaceFolder?.name ?? null,
+        dirName,
         file: {
           path: document.fileName,
           name: path.basename(document.fileName),
-          size: fileSize,
+          extension: path.extname(document.fileName),
+          size: `${originalSize>1000?fileSize.toFixed(2):fileSize}${constants.fileSizes[currentDivision]}`,
           totalLines: document.lineCount.toLocaleString(),
           currentLine: (selection.active.line + 1).toLocaleString(),
           currentColumn: (selection.active.character + 1).toLocaleString(),
         },
         git: {
-          link: gitLink,
+          repoName: gitRepoName,
           branch: gitBranch,
         },
       };
@@ -86,6 +115,7 @@ export async function updateActivity (config: vscode.WorkspaceConfiguration, sta
       if (resp.status === 200) { sbUpdate('success', statusBar); }
       else if (resp.status === 403) { sbUpdate('invalidkey', statusBar); }
     } catch (e) {
+      sbUpdate('error', statusBar, e.message);
       console.error(e);
     }
   }
