@@ -79,8 +79,8 @@ export async function updateActivity (config: vscode.WorkspaceConfiguration, sta
       let gitRepoName, gitBranch;
       if(git?.repositories.length) {
         const selectedRepo = git.repositories.find((repo) => repo.ui.selected);
-        gitBranch = selectedRepo?.state.HEAD?.name ?? null;
-        gitRepoName = selectedRepo?.state.remotes[0].fetchUrl?.split('/')[1].replace('.git', '') ?? null;
+        gitBranch = selectedRepo?.state?.HEAD?.name ?? null;
+        gitRepoName = selectedRepo?.state?.remotes[0]?.fetchUrl?.split('/')[1].replace('.git', '') ?? null;
       } else {
         gitRepoName = 'Unknown';
         gitBranch = 'Unknown';
