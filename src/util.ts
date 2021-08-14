@@ -100,6 +100,7 @@ export async function updateActivity (config: vscode.WorkspaceConfiguration, sta
           path: document.fileName,
           name: path.basename(document.fileName),
           extension: path.extname(document.fileName),
+          extensionImage: constants.extensionImageURL + (path.extname(document.fileName)?.replace('.','') ? `file_type_${path.extname(document.fileName)?.replace('.','')}` : 'default_file') + '.svg',
           size: `${originalSize>1000?fileSize.toFixed(2):fileSize}${constants.fileSizes[currentDivision]}`,
           totalLines: document.lineCount.toLocaleString(),
           currentLine: (selection.active.line + 1).toLocaleString(),
