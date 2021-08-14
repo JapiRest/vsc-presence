@@ -12,8 +12,8 @@ sbUpdate('init', statusBarIcon);
 let listeners: {dispose():any}[] = [];
 
 function cleanUp() {
-  listeners.forEach((listener) => listener.dispose());
-  listeners = [];
+  for(let listener of listeners) listener.dispose()
+  listeners = []
 }
 
 export function activate(context: vscode.ExtensionContext) {
