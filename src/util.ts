@@ -21,7 +21,7 @@ export function sbUpdate(type = 'success', statusBar: vscode.StatusBarItem, mess
     case 'error': {
       statusBar.text = '$(error) Error occurred';
       statusBar.tooltip = "This tooltip should've updated...";
-      statusBar.command = 'japi.statusbar.hide';
+      statusBar.command = 'japi.presence.send';
       statusBar.tooltip = message;
     } break;
 
