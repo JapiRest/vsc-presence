@@ -2,7 +2,7 @@
 	"name": "japi-presence",
 	"displayName": "JAPI Presence",
 	"description": "An easy way to display what your working on, from anywhere you can access JAPI.",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"publisher": "japirest",
 	"repository": "https://github.com/JapiRest/vsc-presence",
   "icon": "icons/JapiRest.png",
