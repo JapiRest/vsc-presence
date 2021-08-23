@@ -56,7 +56,7 @@ export async function updateActivity (config: vscode.WorkspaceConfiguration, sta
 
     let fileSize: number;
     try {
-      ({size: fileSize} = await vscode.workspace.fs.stat(document.uri));
+      ({size: fileSize} = await vscode.workspace.fs.stat(document?.uri));
     } catch (err) {
       fileSize = document.getText().length;
     }
@@ -77,7 +77,7 @@ export async function updateActivity (config: vscode.WorkspaceConfiguration, sta
       // Github
       const git = await getGit();
       let gitRepoName, gitBranch;
-      if(git?.repositories.length) {
+      if(git?.repositories?.length) {
         const selectedRepo = git.repositories.find((repo) => repo.ui.selected);
         gitBranch = selectedRepo?.state?.HEAD?.name ?? null;
         gitRepoName = selectedRepo?.state?.remotes[0]?.fetchUrl?.split('/')[1].replace('.git', '') ?? null;
@@ -89,7 +89,7 @@ export async function updateActivity (config: vscode.WorkspaceConfiguration, sta
       const { dir } = path.parse(window.activeTextEditor.document.fileName);
       const split = dir.split(path.sep);
       const dirName = split[split.length - 1];
-      const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(document?.uri);
 			
       const data = {
         presenceVersion: presenceVersion,
@@ -97,12 +97,12 @@ export async function updateActivity (config: vscode.WorkspaceConfiguration, sta
         workspaceFolder: workspaceFolder?.name ?? null,
         dirName,
         file: {
-          path: document.fileName,
-          name: path.basename(document.fileName),
-          extension: path.extname(document.fileName),
-          extensionImage: constants.extensionImageURL + (path.extname(document.fileName)?.replace('.','') ? `file_type_${path.extname(document.fileName)?.replace('.','')}` : 'default_file') + '.svg',
+          path: document?.fileName,
+          name: path.basename(document?.fileName),
+          extension: path.extname(document?.fileName)?.replace(/^\./,''),
+          extensionImage: constants.extensionImageURL + (path.extname(document?.fileName)?.replace('.','') ? `file_type_${path.extname(document?.fileName)?.replace('.','')}` : 'default_file') + '.svg',
           size: `${originalSize>1000?fileSize.toFixed(2):fileSize}${constants.fileSizes[currentDivision]}`,
-          totalLines: document.lineCount.toLocaleString(),
+          totalLines: document?.lineCount.toLocaleString(),
           currentLine: (selection.active.line + 1).toLocaleString(),
           currentColumn: (selection.active.character + 1).toLocaleString(),
         },
@@ -112,7 +112,7 @@ export async function updateActivity (config: vscode.WorkspaceConfiguration, sta
         },
       };
 
-      const resp = await fetch(`${constants.baseUrl}send`, { method: 'POST', headers: { 'content-Type': 'application/json', 'authorization': String(config.get('api.token')) }, body: JSON.stringify(data) }).then((resp) => resp.json());
+      const resp = await fetch(`${constants.baseUrl}send`, { method: 'POST', headers: { 'content-Type': 'application/json', 'authorization': String(config.get('api.token')) }, body: JSON.stringify(data) });
       if (resp.status === 200) { sbUpdate('success', statusBar); }
       else if (resp.status === 403) { sbUpdate('invalidkey', statusBar); }
     } catch (e) {
